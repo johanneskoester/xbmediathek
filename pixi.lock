@@ -34,9 +34,6 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/rust-std-x86_64-unknown-linux-gnu-1.99.1-h480d76f_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/sysroot_linux-64-2.28-h4ee821c_9.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/tzdata-2026e-h5d301ff_0.conda
-      win-64:
-      - conda: https://conda.anaconda.org/conda-forge/noarch/rust-std-x86_64-pc-windows-msvc-1.99.1-h5a2a77e_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/win-64/rust-1.99.1-h394c39e_0.conda
 packages:
 - conda: https://conda.anaconda.org/conda-forge/linux-64/_openmp_mutex-4.5-20_gnu.conda
   build_number: 20
@@ -223,18 +220,6 @@ packages:
   run_exports: {}
   size: 23329491
   timestamp: 1790303058123
-- conda: https://conda.anaconda.org/conda-forge/noarch/rust-std-x86_64-pc-windows-msvc-1.99.1-h5a2a77e_0.conda
-  sha256: 7b9e6d19cd5f81b501c2ceb4f319f806577b3758067138466c6a2d7d8ab202b1
-  md5: 3e49760f63bb8a9c5e601126b0973d5d
-  depends:
-  - __win
-  constrains:
-  - rust >=1.99.1,<1.99.2.0a0
-  license: MIT
-  license_family: MIT
-  run_exports: {}
-  size: 31121744
-  timestamp: 1792910304119
 - conda: https://conda.anaconda.org/conda-forge/noarch/rust-std-x86_64-unknown-linux-gnu-1.99.1-h480d76f_0.conda
   sha256: dea4394be851fdee6620769d521805833477ff4255f5a7d8a69480f8a83bb50f
   md5: cc580c86fd9f44b6baf074bf525869ac
@@ -268,13 +253,3 @@ packages:
   run_exports: {}
   size: 119208
   timestamp: 1792758382821
-- conda: https://conda.anaconda.org/conda-forge/win-64/rust-1.99.1-h394c39e_0.conda
-  sha256: 59227bced6c72fd2a1c3501be827859e1a97aceff218d4ed3ab0c160fea1363e
-  md5: f5f3772e162f7f4630762398f0cc9c13
-  depends:
-  - rust-std-x86_64-pc-windows-msvc ==1.99.1 h5a2a77e_0
-  license: MIT
-  license_family: MIT
-  run_exports: {}
-  size: 230098195
-  timestamp: 1792910304119

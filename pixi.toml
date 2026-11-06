@@ -9,7 +9,7 @@ version = "0.1.0"
 test = "cargo test"
 build = "cargo build --release"
 
-[dependencies]
+[target.linux-64.dependencies]
 rust = ">=1.85,<2"
 
 [target.win-64.tasks]
