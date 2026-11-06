@@ -19,7 +19,7 @@ use windows::{
 use xbmediathek::Provider;
 
 mod bindings {
-    windows::include_bindings!();
+    windows::core::include_bindings!();
 }
 
 use bindings::{
