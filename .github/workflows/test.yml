@@ -9,6 +9,7 @@ jobs:
   test:
     runs-on: windows-latest
     env:
+      # Use the normal rust-cache workspace cleanup for host builds.
       CARGO_TARGET_DIR: target/host
     steps:
       - uses: actions/checkout@v4
@@ -17,21 +18,24 @@ jobs:
         with:
           cache: true
       - name: Install Rust UWP build toolchain
-        run: rustup toolchain install nightly --profile minimal --component rust-src
+        run: rustup toolchain install nightly-2026-08-15 --profile minimal --component rust-src
       - name: Cache Rust build outputs
         uses: Swatinem/rust-cache@v2
         env:
-          RUSTUP_TOOLCHAIN: nightly
+          RUSTUP_TOOLCHAIN: nightly-2026-08-15
         with:
           workspaces: . -> target/host
+          # Cache UWP separately: workspace cleanup can remove build-std
+          # artifacts because they are not listed as project dependencies.
           cache-directories: target/uwp
           cache-bin: false
-          key: uwp-${{ hashFiles('pixi.toml') }}
+          key: uwp-nightly-2026-08-15
       - name: Run tests
         run: pixi run --locked test
       - name: Build Rust library (release)
         run: pixi run --locked build
       - name: Build Rust UWP library (release)
         env:
+          # Match the separately cached directory above.
           CARGO_TARGET_DIR: target/uwp
         run: pixi run --locked build-uwp-core
