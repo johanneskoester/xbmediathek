@@ -1,0 +1,16 @@
+[workspace]
+authors = ["Johannes Köster <johannes.koester@uni-due.de>"]
+channels = ["conda-forge", "bioconda"]
+name = "xbmediathek"
+platforms = ["linux-64", "win-64"]
+version = "0.1.0"
+
+[tasks]
+test = "cargo test"
+build = "cargo build --release"
+
+[dependencies]
+rust = ">=1.85,<2"
+
+[target.win-64.tasks]
+build-uwp-core = "rustup run nightly cargo build --locked --release --lib --target x86_64-uwp-windows-msvc -Z build-std=std,panic_abort"

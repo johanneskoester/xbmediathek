@@ -1,0 +1,144 @@
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Provider {
+    Ard,
+    Zdf,
+    Arte,
+}
+
+impl Provider {
+    pub const ALL: [Provider; 3] = [Provider::Ard, Provider::Zdf, Provider::Arte];
+
+    pub fn url(self) -> &'static str {
+        match self {
+            Provider::Ard => "https://www.ardmediathek.de/",
+            Provider::Zdf => "https://www.zdf.de/",
+            Provider::Arte => "https://www.arte.tv/de/",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum View {
+    Providers,
+    Web(Provider),
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum BackAction {
+    GoBack,
+    ShowProviders,
+    None,
+}
+
+pub fn back_action(view: View, can_go_back: bool) -> BackAction {
+    match (view, can_go_back) {
+        (View::Providers, _) => BackAction::None,
+        (View::Web(_), true) => BackAction::GoBack,
+        (View::Web(_), false) => BackAction::ShowProviders,
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Rect {
+    pub left: f64,
+    pub top: f64,
+    pub right: f64,
+    pub bottom: f64,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Direction {
+    Up,
+    Down,
+    Left,
+    Right,
+}
+
+pub fn next_focus(current: Rect, candidates: &[Rect], direction: Direction) -> Option<usize> {
+    let center = |rect: Rect| {
+        (
+            (rect.left + rect.right) / 2.0,
+            (rect.top + rect.bottom) / 2.0,
+        )
+    };
+    let (current_x, current_y) = center(current);
+
+    candidates
+        .iter()
+        .enumerate()
+        .filter_map(|(index, candidate)| {
+            let (candidate_x, candidate_y) = center(*candidate);
+            let (forward, sideways) = match direction {
+                Direction::Up => (current_y - candidate_y, (candidate_x - current_x).abs()),
+                Direction::Down => (candidate_y - current_y, (candidate_x - current_x).abs()),
+                Direction::Left => (current_x - candidate_x, (candidate_y - current_y).abs()),
+                Direction::Right => (candidate_x - current_x, (candidate_y - current_y).abs()),
+            };
+            (forward > 0.0 && forward.is_finite() && sideways.is_finite())
+                .then_some((index, forward + sideways * 2.0))
+        })
+        .min_by(|left, right| left.1.total_cmp(&right.1))
+        .map(|(index, _)| index)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn providers_have_https_homepages() {
+        for provider in Provider::ALL {
+            assert!(provider.url().starts_with("https://"));
+        }
+    }
+
+    #[test]
+    fn back_prefers_history_then_provider_selection() {
+        assert_eq!(
+            back_action(View::Web(Provider::Ard), true),
+            BackAction::GoBack
+        );
+        assert_eq!(
+            back_action(View::Web(Provider::Ard), false),
+            BackAction::ShowProviders
+        );
+        assert_eq!(back_action(View::Providers, true), BackAction::None);
+    }
+
+    fn rect(x: f64, y: f64) -> Rect {
+        Rect {
+            left: x,
+            top: y,
+            right: x + 20.0,
+            bottom: y + 20.0,
+        }
+    }
+
+    #[test]
+    fn chooses_nearby_aligned_candidate() {
+        let candidates = [rect(30.0, 60.0), rect(50.0, 0.0), rect(-30.0, 0.0)];
+        assert_eq!(
+            next_focus(rect(0.0, 0.0), &candidates, Direction::Right),
+            Some(1)
+        );
+    }
+
+    #[test]
+    fn rejects_candidates_behind_or_at_current_position() {
+        let candidates = [rect(0.0, 0.0), rect(0.0, 20.0)];
+        assert_eq!(next_focus(rect(0.0, 0.0), &candidates, Direction::Up), None);
+        assert_eq!(
+            next_focus(rect(0.0, 0.0), &candidates, Direction::Down),
+            Some(1)
+        );
+    }
+
+    #[test]
+    fn ignores_non_finite_coordinates() {
+        let candidates = [rect(f64::NAN, 0.0), rect(20.0, 0.0)];
+        assert_eq!(
+            next_focus(rect(0.0, 0.0), &candidates, Direction::Right),
+            Some(1)
+        );
+    }
+}
