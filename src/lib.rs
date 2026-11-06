@@ -8,12 +8,39 @@ pub enum Provider {
 impl Provider {
     pub const ALL: [Provider; 3] = [Provider::Ard, Provider::Zdf, Provider::Arte];
 
+    pub fn name(self) -> &'static str {
+        match self {
+            Provider::Ard => "ARD Mediathek",
+            Provider::Zdf => "ZDF",
+            Provider::Arte => "ARTE",
+        }
+    }
+
     pub fn url(self) -> &'static str {
         match self {
             Provider::Ard => "https://www.ardmediathek.de/",
             Provider::Zdf => "https://www.zdf.de/",
             Provider::Arte => "https://www.arte.tv/de/",
         }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct ProviderPicker {
+    selected: usize,
+}
+
+impl ProviderPicker {
+    pub fn selected(&self) -> Provider {
+        Provider::ALL[self.selected]
+    }
+
+    pub fn move_left(&mut self) {
+        self.selected = self.selected.saturating_sub(1);
+    }
+
+    pub fn move_right(&mut self) {
+        self.selected = (self.selected + 1).min(Provider::ALL.len() - 1);
     }
 }
 
@@ -84,6 +111,18 @@ pub fn next_focus(current: Rect, candidates: &[Rect], direction: Direction) -> O
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn picker_moves_between_providers_without_wrapping() {
+        let mut picker = ProviderPicker::default();
+        picker.move_left();
+        assert_eq!(picker.selected(), Provider::Ard);
+        picker.move_right();
+        assert_eq!(picker.selected(), Provider::Zdf);
+        picker.move_right();
+        picker.move_right();
+        assert_eq!(picker.selected(), Provider::Arte);
+    }
 
     #[test]
     fn providers_have_https_homepages() {

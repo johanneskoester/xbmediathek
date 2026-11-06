@@ -2,3 +2,22 @@
 name = "xbmediathek"
 version = "0.1.0"
 edition = "2021"
+
+[target.'cfg(target_vendor = "uwp")'.dependencies]
+windows = { version = "0.28", features = [
+	"alloc",
+	"build",
+	"std",
+	"ApplicationModel_Activation",
+	"Foundation",
+	"Foundation_Collections",
+	"UI_Core",
+	"UI_Xaml",
+	"UI_Xaml_Controls",
+	"UI_Xaml_Media",
+	"System",
+	"Win32_System_Com",
+] }
+
+[target.'cfg(windows)'.build-dependencies]
+windows = { version = "0.28", features = ["build"] }

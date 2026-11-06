@@ -4,3 +4,6 @@
 
 # Rust build output
 /target/
+
+# WinRT metadata restored by CI
+/.windows/
