@@ -30,6 +30,10 @@ jobs:
           cache-directories: target/uwp
           cache-bin: false
           key: uwp-nightly-2026-08-15
+      - name: Lint
+        run: pixi run --locked lint
+      - name: Format
+        run: pixi run --locked format
       - name: Run tests
         run: pixi run --locked test
       - name: Build Rust library (release)

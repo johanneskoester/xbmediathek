@@ -6,6 +6,8 @@ platforms = ["linux-64", "win-64"]
 version = "0.1.0"
 
 [tasks]
+format = "cargo fmt"
+lint = "cargo clippy && actionlint .github/workflows/*.yml"
 test = "cargo test"
 build = "cargo build --release"
 
@@ -14,3 +16,6 @@ rust = ">=1.85,<2"
 
 [target.win-64.tasks]
 build-uwp-core = "rustup run nightly-2026-08-15 cargo build --locked --release --lib --target x86_64-uwp-windows-msvc -Z build-std=std,panic_abort"
+
+[dependencies]
+actionlint = ">=1.7.12,<2"
