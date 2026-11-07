@@ -20,5 +20,9 @@ windows = { version = "0.28", features = [
 	"Win32_System_Com",
 ] }
 
+[target.'cfg(all(target_vendor = "uwp", target_arch = "x86_64", target_env = "msvc"))'.dependencies]
+windows_x86_64_msvc = "0.28"
+
 [target.'cfg(windows)'.build-dependencies]
+cargo_metadata = "0.18"
 windows = { version = "0.28", features = ["build"] }
