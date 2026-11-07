@@ -29,8 +29,10 @@ Define providers in `package.metadata.providers` in `Cargo.toml`. Each entry
 requires a display `name`, homepage `url` and `logo` URL. Their order in the
 manifest determines the picker order. Keys must use lowercase letters and
 digits, with words separated by hyphens or underscores; they generate the Rust
-enum variants at build time. Logo URLs are exposed in the provider metadata but
-are not yet displayed by the UWP host.
+enum variants through the `xbmediathek-provider-macro` procedural macro. The
+macro reads the consuming package's manifest directly; the root `build.rs` is
+reserved for Windows binding and linker setup. Logo URLs are exposed in the
+provider metadata but are not yet displayed by the UWP host.
 
 ## Store validation
 

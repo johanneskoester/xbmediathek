@@ -3,7 +3,7 @@
 !.pixi/config.toml
 
 # Rust build output
-/target/
+target/
 
 # WinRT metadata restored by CI
-/.windows/
+.windows/

@@ -355,6 +355,16 @@ dependencies = [
  "toml",
  "windows",
  "windows_x86_64_msvc",
+ "xbmediathek-provider-macro",
+]
+
+[[package]]
+name = "xbmediathek-provider-macro"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "toml",
 ]
 
 [[package]]

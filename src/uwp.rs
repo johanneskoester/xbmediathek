@@ -10,9 +10,13 @@ use windows::{
         Core::{CoreWindow, KeyEventArgs},
         Xaml::{
             Application, ApplicationInitializationCallback, ApplicationRequiresPointerMode,
-            Controls::{Button, Control, Grid, Orientation, Page, StackPanel, TextBlock},
-            FocusState, HorizontalAlignment, ResourceDictionary, RoutedEventHandler, Thickness,
-            UIElement, VerticalAlignment, Visibility, Window,
+            Automation::AutomationProperties,
+            Controls::{Button, Control, Grid, Image, Orientation, Page, StackPanel, TextBlock},
+            FocusState, HorizontalAlignment,
+            Media::Imaging::SvgImageSource,
+            Media::{ImageSource, Stretch},
+            ResourceDictionary, RoutedEventHandler, Thickness, UIElement, VerticalAlignment,
+            Visibility, Window,
         },
     },
 };
@@ -63,10 +67,15 @@ impl App {
             let button = Button::new()?;
             button.SetWidth(360.0)?;
             button.SetHeight(68.0)?;
-            button.SetFontSize(22.0)?;
-            let label = TextBlock::new()?;
-            label.SetText(provider.name())?;
-            button.SetContent(label)?;
+            AutomationProperties::SetName(&button, provider.name())?;
+            let logo = Image::new()?;
+            logo.SetWidth(300.0)?;
+            logo.SetHeight(52.0)?;
+            logo.SetStretch(Stretch::Uniform)?;
+            let image_source =
+                SvgImageSource::CreateInstanceWithUriSource(Uri::CreateUri(provider.logo())?)?;
+            logo.SetSource(image_source.cast::<ImageSource>()?)?;
+            button.SetContent(logo)?;
 
             let browser_root = root.clone();
             let provider_list = picker.clone();

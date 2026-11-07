@@ -1,41 +1,6 @@
-macro_rules! define_providers {
-    ($( $variant:ident { name: $name:literal, url: $url:literal, logo: $logo:literal }, )+) => {
-        #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-        pub enum Provider {
-            $( $variant, )+
-        }
+use xbmediathek_provider_macro::define_providers;
 
-        impl Provider {
-            pub const ALL: [Provider; define_providers!(@count $( $variant )+)] = [
-                $( Provider::$variant, )+
-            ];
-
-            pub fn name(self) -> &'static str {
-                match self {
-                    $( Provider::$variant => $name, )+
-                }
-            }
-
-            pub fn url(self) -> &'static str {
-                match self {
-                    $( Provider::$variant => $url, )+
-                }
-            }
-
-            pub fn logo(self) -> &'static str {
-                match self {
-                    $( Provider::$variant => $logo, )+
-                }
-            }
-        }
-    };
-    (@count $( $item:ident )+) => {
-        <[()]>::len(&[$( define_providers!(@unit $item) ),+])
-    };
-    (@unit $item:ident) => { () };
-}
-
-include!(concat!(env!("OUT_DIR"), "/providers.rs"));
+define_providers!();
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct ProviderPicker {

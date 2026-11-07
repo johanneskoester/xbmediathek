@@ -3,8 +3,8 @@ name = "xbmediathek"
 version = "0.1.0"
 edition = "2021"
 
-[build-dependencies]
-toml = { version = "0.8", features = ["preserve_order"] }
+[dependencies]
+xbmediathek-provider-macro = { path = "provider-macro" }
 
 [dev-dependencies]
 toml = { version = "0.8", features = ["preserve_order"] }
@@ -18,10 +18,12 @@ windows = { version = "0.28", features = [
 	"Foundation",
 	"Foundation_Collections",
 	"UI_Core",
+	"UI_Xaml_Automation",
 	"UI_Xaml",
 	"UI_Xaml_Controls",
 	"UI_Xaml_Controls_Primitives",
 	"UI_Xaml_Media",
+	"UI_Xaml_Media_Imaging",
 	"System",
 	"Win32_System_Com",
 ] }
