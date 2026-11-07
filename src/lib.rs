@@ -1,29 +1,41 @@
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Provider {
-    Ard,
-    Zdf,
-    Arte,
+macro_rules! define_providers {
+    ($( $variant:ident { name: $name:literal, url: $url:literal, logo: $logo:literal }, )+) => {
+        #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+        pub enum Provider {
+            $( $variant, )+
+        }
+
+        impl Provider {
+            pub const ALL: [Provider; define_providers!(@count $( $variant )+)] = [
+                $( Provider::$variant, )+
+            ];
+
+            pub fn name(self) -> &'static str {
+                match self {
+                    $( Provider::$variant => $name, )+
+                }
+            }
+
+            pub fn url(self) -> &'static str {
+                match self {
+                    $( Provider::$variant => $url, )+
+                }
+            }
+
+            pub fn logo(self) -> &'static str {
+                match self {
+                    $( Provider::$variant => $logo, )+
+                }
+            }
+        }
+    };
+    (@count $( $item:ident )+) => {
+        <[()]>::len(&[$( define_providers!(@unit $item) ),+])
+    };
+    (@unit $item:ident) => { () };
 }
 
-impl Provider {
-    pub const ALL: [Provider; 3] = [Provider::Ard, Provider::Zdf, Provider::Arte];
-
-    pub fn name(self) -> &'static str {
-        match self {
-            Provider::Ard => "ARD Mediathek",
-            Provider::Zdf => "ZDF",
-            Provider::Arte => "ARTE",
-        }
-    }
-
-    pub fn url(self) -> &'static str {
-        match self {
-            Provider::Ard => "https://www.ardmediathek.de/",
-            Provider::Zdf => "https://www.zdf.de/",
-            Provider::Arte => "https://www.arte.tv/de/",
-        }
-    }
-}
+include!(concat!(env!("OUT_DIR"), "/providers.rs"));
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct ProviderPicker {
@@ -116,12 +128,27 @@ mod tests {
     fn picker_moves_between_providers_without_wrapping() {
         let mut picker = ProviderPicker::default();
         picker.move_left();
-        assert_eq!(picker.selected(), Provider::Ard);
+        assert_eq!(picker.selected(), Provider::ALL[0]);
+        for provider in Provider::ALL.iter().skip(1) {
+            picker.move_right();
+            assert_eq!(picker.selected(), *provider);
+        }
         picker.move_right();
-        assert_eq!(picker.selected(), Provider::Zdf);
-        picker.move_right();
-        picker.move_right();
-        assert_eq!(picker.selected(), Provider::Arte);
+        assert_eq!(picker.selected(), *Provider::ALL.last().unwrap());
+    }
+
+    #[test]
+    fn providers_match_manifest_in_order() {
+        let manifest: toml::Value = include_str!("../Cargo.toml").parse().unwrap();
+        let providers = manifest["package"]["metadata"]["providers"]
+            .as_table()
+            .unwrap();
+        assert_eq!(Provider::ALL.len(), providers.len());
+        for (provider, (_, metadata)) in Provider::ALL.iter().zip(providers) {
+            assert_eq!(Some(provider.name()), metadata["name"].as_str());
+            assert_eq!(Some(provider.url()), metadata["url"].as_str());
+            assert_eq!(Some(provider.logo()), metadata["logo"].as_str());
+        }
     }
 
     #[test]
@@ -134,11 +161,11 @@ mod tests {
     #[test]
     fn back_prefers_history_then_provider_selection() {
         assert_eq!(
-            back_action(View::Web(Provider::Ard), true),
+            back_action(View::Web(Provider::ALL[0]), true),
             BackAction::GoBack
         );
         assert_eq!(
-            back_action(View::Web(Provider::Ard), false),
+            back_action(View::Web(Provider::ALL[0]), false),
             BackAction::ShowProviders
         );
         assert_eq!(back_action(View::Providers, true), BackAction::None);

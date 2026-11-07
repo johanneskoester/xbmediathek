@@ -3,6 +3,12 @@ name = "xbmediathek"
 version = "0.1.0"
 edition = "2021"
 
+[build-dependencies]
+toml = { version = "0.8", features = ["preserve_order"] }
+
+[dev-dependencies]
+toml = { version = "0.8", features = ["preserve_order"] }
+
 [target.'cfg(target_vendor = "uwp")'.dependencies]
 windows = { version = "0.28", features = [
 	"alloc",
@@ -26,3 +32,8 @@ windows_x86_64_msvc = "0.28"
 [target.'cfg(windows)'.build-dependencies]
 cargo_metadata = "0.18"
 windows = { version = "0.28", features = ["build"] }
+
+[package.metadata.providers]
+zdf = { name = "ZDF", url = "https://www.zdf.de/", logo = "https://upload.wikimedia.org/wikipedia/commons/c/c1/ZDF_logo.svg?download" }
+ard = { name = "ARD Mediathek", url = "https://www.ardmediathek.de", logo = "https://upload.wikimedia.org/wikipedia/commons/7/7c/ARD_2019_logo.svg?download" }
+arte = { name = "ARTE", url = "https://www.arte.tv", logo = "https://upload.wikimedia.org/wikipedia/commons/3/3b/Arte-Logo.svg?download" }

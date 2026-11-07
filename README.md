@@ -23,6 +23,15 @@ Pixi provides the task but not that Tier 3 target's standard library. CI
 restores WinUI 2 and WebView2 metadata through NuGet; it does not yet package
 the required runtime files or an Xbox app.
 
+## Providers
+
+Define providers in `package.metadata.providers` in `Cargo.toml`. Each entry
+requires a display `name`, homepage `url` and `logo` URL. Their order in the
+manifest determines the picker order. Keys must use lowercase letters and
+digits, with words separated by hyphens or underscores; they generate the Rust
+enum variants at build time. Logo URLs are exposed in the provider metadata but
+are not yet displayed by the UWP host.
+
 ## Store validation
 
 Store packaging cannot be tested until a package manifest, assets and
