@@ -3,7 +3,7 @@ use windows::{
     self as Windows,
     core::*,
     ApplicationModel::Activation::LaunchActivatedEventArgs,
-    Foundation::TypedEventHandler,
+    Foundation::{TypedEventHandler, Uri},
     System::VirtualKey,
     Win32::System::Com::{CoInitializeEx, COINIT_MULTITHREADED},
     UI::{
@@ -29,7 +29,7 @@ mod bindings {
 
 use bindings::{
     Microsoft::UI::Xaml::Controls::{WebView2, XamlControlsResources},
-    Windows::Foundation::Uri,
+    Windows::Foundation::Uri as WebUri,
 };
 
 #[implement(extend Windows::UI::Xaml::Application, override OnLaunched)]
@@ -137,7 +137,7 @@ impl App {
                 button.Click(RoutedEventHandler::new(move |_, _| {
                     let browser = WebView2::new()?;
                     let element: UIElement = browser.cast()?;
-                    browser.SetSource(Uri::CreateUri(provider.url())?)?;
+                    browser.SetSource(WebUri::CreateUri(provider.url())?)?;
                     browser_root.Children()?.Append(&element)?;
                     provider_list.SetVisibility(Visibility::Collapsed)?;
                     browser.cast::<Control>()?.Focus(FocusState::Programmatic)?;
