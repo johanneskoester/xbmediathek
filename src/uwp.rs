@@ -3,10 +3,11 @@ use windows::{
     self as Windows,
     core::*,
     ApplicationModel::Activation::LaunchActivatedEventArgs,
-    Foundation::TypedEventHandler,
+    Foundation::{TypedEventHandler, Uri},
     System::VirtualKey,
     Win32::System::Com::{CoInitializeEx, COINIT_MULTITHREADED},
     UI::{
+        Color,
         Core::{CoreWindow, KeyEventArgs},
         Xaml::{
             Application, ApplicationInitializationCallback, ApplicationRequiresPointerMode,
@@ -14,7 +15,7 @@ use windows::{
             Controls::{Button, Control, Grid, Image, Orientation, Page, StackPanel, TextBlock},
             FocusState, HorizontalAlignment,
             Media::Imaging::SvgImageSource,
-            Media::{ImageSource, Stretch},
+            Media::{Brush, ImageSource, SolidColorBrush, Stretch},
             ResourceDictionary, RoutedEventHandler, Thickness, UIElement, VerticalAlignment,
             Visibility, Window,
         },
@@ -28,7 +29,7 @@ mod bindings {
 
 use bindings::{
     Microsoft::UI::Xaml::Controls::{WebView2, XamlControlsResources},
-    Windows::Foundation::Uri,
+    Windows::Foundation::Uri as WebUri,
 };
 
 #[implement(extend Windows::UI::Xaml::Application, override OnLaunched)]
@@ -43,10 +44,17 @@ impl App {
         app.Resources()?.MergedDictionaries()?.Append(resources)?;
 
         let page = Page::new()?;
+        let background = SolidColorBrush::CreateInstanceWithColor(Color {
+            A: 255,
+            R: 32,
+            G: 32,
+            B: 32,
+        })?;
+        page.SetBackground(background.cast::<Brush>()?)?;
         let root = Grid::new()?;
         let picker = StackPanel::new()?;
         picker.SetOrientation(Orientation::Vertical)?;
-        picker.SetSpacing(16.0)?;
+        picker.SetSpacing(32.0)?;
         picker.SetHorizontalAlignment(HorizontalAlignment::Center)?;
         picker.SetVerticalAlignment(VerticalAlignment::Center)?;
         picker.SetPadding(Thickness {
@@ -61,39 +69,87 @@ impl App {
         heading.SetFontSize(32.0)?;
         picker.Children()?.Append(heading)?;
 
+        let transparent = SolidColorBrush::CreateInstanceWithColor(Color {
+            A: 0,
+            R: 0,
+            G: 0,
+            B: 0,
+        })?;
         let active = Rc::new(RefCell::new(None::<WebView2>));
         let mut first_button = None;
-        for provider in Provider::ALL {
-            let button = Button::new()?;
-            button.SetWidth(360.0)?;
-            button.SetHeight(68.0)?;
-            AutomationProperties::SetName(&button, provider.name())?;
-            let logo = Image::new()?;
-            logo.SetWidth(300.0)?;
-            logo.SetHeight(52.0)?;
-            logo.SetStretch(Stretch::Uniform)?;
-            let image_source =
-                SvgImageSource::CreateInstanceWithUriSource(Uri::CreateUri(provider.logo())?)?;
-            logo.SetSource(image_source.cast::<ImageSource>()?)?;
-            button.SetContent(logo)?;
+        for providers in Provider::ALL.chunks(5) {
+            let row = StackPanel::new()?;
+            row.SetOrientation(Orientation::Horizontal)?;
+            row.SetSpacing(24.0)?;
+            row.SetHorizontalAlignment(HorizontalAlignment::Center)?;
 
-            let browser_root = root.clone();
-            let provider_list = picker.clone();
-            let browser_state = active.clone();
-            button.Click(RoutedEventHandler::new(move |_, _| {
-                let browser = WebView2::new()?;
-                let element: UIElement = browser.cast()?;
-                browser.SetSource(Uri::CreateUri(provider.url())?)?;
-                browser_root.Children()?.Append(&element)?;
-                provider_list.SetVisibility(Visibility::Collapsed)?;
-                browser.cast::<Control>()?.Focus(FocusState::Programmatic)?;
-                *browser_state.borrow_mut() = Some(browser);
-                Ok(())
-            }))?;
-            if first_button.is_none() {
-                first_button = Some(button.clone());
+            for provider in providers {
+                let button = Button::new()?;
+                button.SetWidth(256.0)?;
+                button.SetHeight(144.0)?;
+                button.SetBorderThickness(Thickness {
+                    Left: 0.0,
+                    Top: 0.0,
+                    Right: 0.0,
+                    Bottom: 0.0,
+                })?;
+                button.SetBorderBrush(transparent.cast::<Brush>()?)?;
+                button.SetBackground(transparent.cast::<Brush>()?)?;
+                button.SetFocusVisualPrimaryThickness(Thickness {
+                    Left: 0.0,
+                    Top: 0.0,
+                    Right: 0.0,
+                    Bottom: 0.0,
+                })?;
+                button.SetFocusVisualSecondaryThickness(Thickness {
+                    Left: 0.0,
+                    Top: 0.0,
+                    Right: 0.0,
+                    Bottom: 0.0,
+                })?;
+                button.SetOpacity(0.55)?;
+                AutomationProperties::SetName(&button, provider.name())?;
+                let logo = Image::new()?;
+                logo.SetWidth(224.0)?;
+                logo.SetHeight(112.0)?;
+                logo.SetStretch(Stretch::Uniform)?;
+                let image_source =
+                    SvgImageSource::CreateInstanceWithUriSource(Uri::CreateUri(provider.logo())?)?;
+                logo.SetSource(image_source.cast::<ImageSource>()?)?;
+                button.SetContent(logo)?;
+
+                button.GotFocus(RoutedEventHandler::new(move |sender, _| {
+                    if let Some(sender) = sender {
+                        sender.cast::<UIElement>()?.SetOpacity(1.0)?;
+                    }
+                    Ok(())
+                }))?;
+                button.LostFocus(RoutedEventHandler::new(move |sender, _| {
+                    if let Some(sender) = sender {
+                        sender.cast::<UIElement>()?.SetOpacity(0.55)?;
+                    }
+                    Ok(())
+                }))?;
+
+                let browser_root = root.clone();
+                let provider_list = picker.clone();
+                let browser_state = active.clone();
+                button.Click(RoutedEventHandler::new(move |_, _| {
+                    let browser = WebView2::new()?;
+                    let element: UIElement = browser.cast()?;
+                    browser.SetSource(WebUri::CreateUri(provider.url())?)?;
+                    browser_root.Children()?.Append(&element)?;
+                    provider_list.SetVisibility(Visibility::Collapsed)?;
+                    browser.cast::<Control>()?.Focus(FocusState::Programmatic)?;
+                    *browser_state.borrow_mut() = Some(browser);
+                    Ok(())
+                }))?;
+                if first_button.is_none() {
+                    first_button = Some(button.clone());
+                }
+                row.Children()?.Append(button)?;
             }
-            picker.Children()?.Append(button)?;
+            picker.Children()?.Append(row)?;
         }
 
         root.Children()?.Append(&picker)?;
@@ -101,6 +157,7 @@ impl App {
         let window = Window::Current()?;
         window.SetContent(page)?;
         let first_button = first_button.expect("at least one provider");
+        let back_focus_button = first_button.clone();
         let current_picker = picker.clone();
         let current_root = root.clone();
         window
@@ -122,7 +179,7 @@ impl App {
                             current_root.Children()?.RemoveAt(1)?;
                             *current = None;
                             current_picker.SetVisibility(Visibility::Visible)?;
-                            first_button.Focus(FocusState::Programmatic)?;
+                            back_focus_button.Focus(FocusState::Programmatic)?;
                         }
                         args.SetHandled(true)?;
                     }
@@ -130,11 +187,7 @@ impl App {
                 },
             ))?;
         window.Activate()?;
-        picker
-            .Children()?
-            .GetAt(1)?
-            .cast::<Button>()?
-            .Focus(FocusState::Programmatic)?;
+        first_button.Focus(FocusState::Programmatic)?;
         Ok(())
     }
 }
